@@ -1,24 +1,25 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getReports, toggleLike, toggleDislike, addComment } from "../api";
 import { useAuth } from "../AuthContext";
 
 export default function DonePage() {
     const { user } = useAuth();
-    const [reports, setReports] = useState(() =>
-        getReports().filter((x) => x.owner === user?.username && x.status === "เสร็จสิ้น")
-    );
+    const [reports, setReports] = useState([]);
 
     const reload = useCallback(() => {
-        setReports(getReports().filter((x) => x.owner === user?.username && x.status === "เสร็จสิ้น"));
+        getReports()
+            .then((all) => setReports(all.filter((x) => x.owner === user?.username && x.status === "เสร็จสิ้น")))
+            .catch(console.error);
     }, [user]);
 
-    function handleLike(id) { toggleLike(id, user.username); reload(); }
-    function handleDislike(id) { toggleDislike(id, user.username); reload(); }
-    function handleComment(id) {
+    useEffect(() => { reload(); }, [reload]);
+
+    async function handleLike(id) { try { await toggleLike(id, user.username); reload(); } catch (e) { console.error(e); } }
+    async function handleDislike(id) { try { await toggleDislike(id, user.username); reload(); } catch (e) { console.error(e); } }
+    async function handleComment(id) {
         const text = prompt("เพิ่มความเห็น:");
         if (!text?.trim()) return;
-        addComment(id, user.username, text);
-        reload();
+        try { await addComment(id, user.username, text); reload(); } catch (e) { console.error(e); }
     }
 
     return (
@@ -28,17 +29,15 @@ export default function DonePage() {
                 <div className="empty-state">ยังไม่มีงานเสร็จแล้ว</div>
             ) : (
                 reports.map((r) => (
-                    <div key={r.reportId} className="report-card border-done">
+                    <div key={r.reportId || r._id} className="report-card border-done">
                         <strong>✅ {r.category}</strong>
                         <div className="report-date">📅 {new Date(r.createdAt).toLocaleString("th-TH")} | #{r.reportId}</div>
                         <div className="report-detail">{r.detail}</div>
-
                         {r.feedback && (
                             <div className="feedback-box">
                                 <strong>💬 หมายเหตุจากช่าง:</strong><br />{r.feedback}
                             </div>
                         )}
-
                         <div className="report-actions">
                             <button className="btn-like" onClick={() => handleLike(r.reportId)}>👍 {r.likesCount || 0}</button>
                             <button className="btn-dislike" onClick={() => handleDislike(r.reportId)}>👎 {r.dislikesCount || 0}</button>

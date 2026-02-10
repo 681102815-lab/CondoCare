@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { getReports, updateReportStatus, updateReportFeedback } from "../api";
 
 const PRIORITY_COLOR = { low: "#28a745", medium: "#17a2b8", high: "#ffc107", critical: "#ff6b6b" };
@@ -6,26 +6,24 @@ const PRIORITY_TEXT = { low: "ต่ำ", medium: "ปกติ", high: "สู�
 const PRIORITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 
 export default function ManagePage() {
-    const [reports, setReports] = useState(() =>
-        getReports().sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2))
-    );
+    const [reports, setReports] = useState([]);
 
     const reload = useCallback(() => {
-        setReports(
-            getReports().sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2))
-        );
+        getReports()
+            .then((all) => setReports(all.sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2))))
+            .catch(console.error);
     }, []);
 
-    function changeStatus(id, status) {
-        updateReportStatus(id, status);
-        reload();
+    useEffect(() => { reload(); }, [reload]);
+
+    async function changeStatus(id, status) {
+        try { await updateReportStatus(id, status); reload(); } catch (e) { console.error(e); }
     }
 
-    function handleFeedback(id) {
+    async function handleFeedback(id) {
         const feedback = prompt("เพิ่มหมายเหตุ:");
         if (!feedback?.trim()) return;
-        updateReportFeedback(id, feedback);
-        reload();
+        try { await updateReportFeedback(id, feedback); reload(); } catch (e) { console.error(e); }
     }
 
     function statusClass(s) {
@@ -55,8 +53,8 @@ export default function ManagePage() {
                         </thead>
                         <tbody>
                             {reports.map((r) => (
-                                <>
-                                    <tr key={r.reportId}>
+                                <React.Fragment key={r.reportId || r._id}>
+                                    <tr>
                                         <td><strong className="accent-text">#{r.reportId}</strong></td>
                                         <td>{r.category}</td>
                                         <td><span className="owner-badge">{r.owner}</span></td>
@@ -80,7 +78,7 @@ export default function ManagePage() {
                                             <button className="btn-ghost-sm" onClick={() => handleFeedback(r.reportId)}>✏️</button>
                                         </td>
                                     </tr>
-                                    <tr key={r.reportId + "-detail"} className="detail-row">
+                                    <tr className="detail-row">
                                         <td colSpan={7}>
                                             <strong>📝 รายละเอียด:</strong> {r.detail}
                                             {r.feedback && <><br /><strong className="accent-text">💬 หมายเหตุ:</strong> {r.feedback}</>}
@@ -90,12 +88,13 @@ export default function ManagePage() {
                                             <span className="dislike-text">👎 ไม่ถูกใจ: {r.dislikesCount || 0}</span>
                                         </td>
                                     </tr>
-                                </>
+                                </React.Fragment>
                             ))}
                         </tbody>
                     </table>
                 </div>
-            )}
-        </section>
+            )
+            }
+        </section >
     );
 }

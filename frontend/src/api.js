@@ -1,129 +1,76 @@
-/*  CondoCare — Standalone API Layer
- *  Uses localStorage for all data (no backend needed).
- *  Works on Vercel, GitHub Pages, or any static hosting.
+/*  CondoCare — API Layer
+ *  Connects to backend server (Express + MongoDB)
+ *  Local dev: http://localhost:5000
+ *  Production: set VITE_API_URL env variable
  */
 
-const USERS = [
-    { username: "admin", password: "1234", role: "admin", firstName: "Admin" },
-    { username: "tech", password: "1234", role: "tech", firstName: "ช่าง" },
-    { username: "resident", password: "1234", role: "resident", firstName: "ผู้พัก" },
-];
+const PROD_API = "https://condocare-backend.onrender.com/api";
+const DEV_API = "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL || (location.hostname === "localhost" ? DEV_API : PROD_API);
 
-const STORAGE_KEY = "cc_reports";
-
-function loadReports() {
-    try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    } catch {
-        return [];
-    }
+export function getToken() {
+    const s = localStorage.getItem("cc_session");
+    if (!s) return null;
+    try { return JSON.parse(s).token; } catch { return null; }
 }
 
-function saveReports(reports) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+export async function api(path, options = {}) {
+    const token = getToken();
+    const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.message || res.statusText);
+    return json;
 }
 
 // ========== Auth ==========
-export function loginUser(username, password) {
-    const user = USERS.find((u) => u.username === username && u.password === password);
-    if (!user) throw new Error("username หรือ password ไม่ถูกต้อง");
+export async function loginUser(username, password) {
+    const res = await api("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ username, password }),
+    });
     return {
-        username: user.username,
-        role: user.role,
-        name: user.firstName,
+        username: res.user.username,
+        role: res.user.role,
+        name: res.user.firstName || res.user.username,
+        token: res.token,
     };
 }
 
-// ========== Reports CRUD ==========
-export function getReports() {
-    return loadReports().sort((a, b) => b.reportId - a.reportId);
+// ========== Reports ==========
+export async function getReports() {
+    const res = await api("/reports");
+    return res.data || [];
 }
 
-export function createReport({ category, detail, priority, owner }) {
-    const reports = loadReports();
-    const report = {
-        reportId: Date.now(),
-        category,
-        detail,
-        priority: priority || "medium",
-        owner,
-        status: "รอรับเรื่อง",
-        feedback: "",
-        likesCount: 0,
-        dislikesCount: 0,
-        likedBy: [],
-        dislikedBy: [],
-        comments: [],
-        createdAt: new Date().toISOString(),
-    };
-    reports.push(report);
-    saveReports(reports);
-    return report;
+export async function createReport({ category, detail, priority, owner }) {
+    return api("/reports", {
+        method: "POST",
+        body: JSON.stringify({ reportId: Date.now(), category, detail, priority, owner }),
+    });
 }
 
-export function deleteReport(reportId) {
-    let reports = loadReports();
-    reports = reports.filter((r) => r.reportId !== reportId);
-    saveReports(reports);
+export async function deleteReport(reportId) {
+    return api(`/reports/${reportId}`, { method: "DELETE" });
 }
 
-export function updateReportStatus(reportId, status) {
-    const reports = loadReports();
-    const r = reports.find((r) => r.reportId === reportId);
-    if (r) r.status = status;
-    saveReports(reports);
-    return r;
+export async function updateReportStatus(reportId, status) {
+    return api(`/reports/${reportId}/status`, { method: "PUT", body: JSON.stringify({ status }) });
 }
 
-export function updateReportFeedback(reportId, feedback) {
-    const reports = loadReports();
-    const r = reports.find((r) => r.reportId === reportId);
-    if (r) r.feedback = feedback;
-    saveReports(reports);
-    return r;
+export async function updateReportFeedback(reportId, feedback) {
+    return api(`/reports/${reportId}/feedback`, { method: "PUT", body: JSON.stringify({ feedback }) });
 }
 
-export function toggleLike(reportId, username) {
-    const reports = loadReports();
-    const r = reports.find((r) => r.reportId === reportId);
-    if (!r) return null;
-    const idx = r.likedBy.indexOf(username);
-    if (idx >= 0) {
-        r.likedBy.splice(idx, 1);
-        r.likesCount = Math.max(0, r.likesCount - 1);
-    } else {
-        r.likedBy.push(username);
-        r.likesCount += 1;
-        const dIdx = r.dislikedBy.indexOf(username);
-        if (dIdx >= 0) { r.dislikedBy.splice(dIdx, 1); r.dislikesCount = Math.max(0, r.dislikesCount - 1); }
-    }
-    saveReports(reports);
-    return r;
+export async function toggleLike(reportId, username) {
+    return api(`/reports/${reportId}/like`, { method: "POST", body: JSON.stringify({ username }) });
 }
 
-export function toggleDislike(reportId, username) {
-    const reports = loadReports();
-    const r = reports.find((r) => r.reportId === reportId);
-    if (!r) return null;
-    const idx = r.dislikedBy.indexOf(username);
-    if (idx >= 0) {
-        r.dislikedBy.splice(idx, 1);
-        r.dislikesCount = Math.max(0, r.dislikesCount - 1);
-    } else {
-        r.dislikedBy.push(username);
-        r.dislikesCount += 1;
-        const lIdx = r.likedBy.indexOf(username);
-        if (lIdx >= 0) { r.likedBy.splice(lIdx, 1); r.likesCount = Math.max(0, r.likesCount - 1); }
-    }
-    saveReports(reports);
-    return r;
+export async function toggleDislike(reportId, username) {
+    return api(`/reports/${reportId}/dislike`, { method: "POST", body: JSON.stringify({ username }) });
 }
 
-export function addComment(reportId, author, text) {
-    const reports = loadReports();
-    const r = reports.find((r) => r.reportId === reportId);
-    if (!r) return null;
-    r.comments.push({ author, text, createdAt: new Date().toISOString() });
-    saveReports(reports);
-    return r;
+export async function addComment(reportId, author, text) {
+    return api(`/reports/${reportId}/comment`, { method: "POST", body: JSON.stringify({ author, text }) });
 }

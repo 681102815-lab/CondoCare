@@ -15,12 +15,13 @@ export function AuthProvider({ children }) {
         setLoading(false);
     }, []);
 
-    function login(username, password) {
-        const userData = loginUser(username, password); // synchronous now
+    async function login(username, password) {
+        const userData = await loginUser(username, password);
         const session = {
             username: userData.username,
             role: userData.role,
             name: userData.name,
+            token: userData.token,
         };
         localStorage.setItem("cc_session", JSON.stringify(session));
         setUser(session);

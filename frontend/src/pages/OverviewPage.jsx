@@ -5,7 +5,7 @@ export default function OverviewPage() {
     const [reports, setReports] = useState([]);
 
     useEffect(() => {
-        setReports(getReports());
+        getReports().then(setReports).catch(console.error);
     }, []);
 
     const total = reports.length;
@@ -14,13 +14,11 @@ export default function OverviewPage() {
     const wait = reports.filter((r) => r.status === "รอรับเรื่อง").length;
     const rate = total > 0 ? Math.round((done / total) * 100) : 0;
 
-    // Category breakdown
     const cats = {};
     reports.forEach((r) => { cats[r.category] = (cats[r.category] || 0) + 1; });
     const sorted = Object.entries(cats).sort((a, b) => b[1] - a[1]);
     const top = sorted[0];
 
-    // Monthly done
     const monthly = {};
     reports.filter((r) => r.status === "เสร็จสิ้น").forEach((r) => {
         const d = new Date(r.createdAt);
@@ -34,7 +32,6 @@ export default function OverviewPage() {
     return (
         <section>
             <h3>📊 ภาพรวมระบบ</h3>
-
             <div className="stats-grid-3">
                 <div className="stat-card accent">
                     <div className="stat-value">{total}</div>
@@ -86,7 +83,6 @@ export default function OverviewPage() {
             </div>
 
             <hr className="divider" />
-
             <h4 className="section-title">📈 งานเสร็จรายเดือน</h4>
             {monthEntries.length > 0 ? (
                 <>
