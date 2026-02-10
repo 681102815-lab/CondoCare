@@ -1,32 +1,31 @@
-import { useState, useEffect, useCallback } from "react";
-import { api } from "../api";
+import { useState, useCallback } from "react";
+import { getReports, updateReportStatus, updateReportFeedback } from "../api";
 
 const PRIORITY_COLOR = { low: "#28a745", medium: "#17a2b8", high: "#ffc107", critical: "#ff6b6b" };
 const PRIORITY_TEXT = { low: "ต่ำ", medium: "ปกติ", high: "สูง", critical: "วิกฤต" };
 const PRIORITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 
 export default function ManagePage() {
-    const [reports, setReports] = useState([]);
+    const [reports, setReports] = useState(() =>
+        getReports().sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2))
+    );
 
-    const load = useCallback(() => {
-        api("/reports").then((r) => {
-            const data = (r.data || []).sort(
-                (a, b) => (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2)
-            );
-            setReports(data);
-        }).catch(console.error);
+    const reload = useCallback(() => {
+        setReports(
+            getReports().sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2))
+        );
     }, []);
 
-    useEffect(() => { load(); }, [load]);
-
-    async function changeStatus(id, status) {
-        try { await api(`/reports/${id}/status`, { method: "PUT", body: JSON.stringify({ status }) }); load(); } catch (e) { console.error(e); }
+    function changeStatus(id, status) {
+        updateReportStatus(id, status);
+        reload();
     }
 
-    async function addFeedback(id) {
+    function handleFeedback(id) {
         const feedback = prompt("เพิ่มหมายเหตุ:");
         if (!feedback?.trim()) return;
-        try { await api(`/reports/${id}/feedback`, { method: "PUT", body: JSON.stringify({ feedback }) }); load(); } catch (e) { console.error(e); }
+        updateReportFeedback(id, feedback);
+        reload();
     }
 
     function statusClass(s) {
@@ -78,7 +77,7 @@ export default function ManagePage() {
                                                 <option>กำลังดำเนินการ</option>
                                                 <option>เสร็จสิ้น</option>
                                             </select>
-                                            <button className="btn-ghost-sm" onClick={() => addFeedback(r.reportId)}>✏️</button>
+                                            <button className="btn-ghost-sm" onClick={() => handleFeedback(r.reportId)}>✏️</button>
                                         </td>
                                     </tr>
                                     <tr key={r.reportId + "-detail"} className="detail-row">

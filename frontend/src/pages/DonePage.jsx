@@ -1,31 +1,24 @@
-import { useState, useEffect, useCallback } from "react";
-import { api } from "../api";
+import { useState, useCallback } from "react";
+import { getReports, toggleLike, toggleDislike, addComment } from "../api";
 import { useAuth } from "../AuthContext";
 
 export default function DonePage() {
     const { user } = useAuth();
-    const [reports, setReports] = useState([]);
+    const [reports, setReports] = useState(() =>
+        getReports().filter((x) => x.owner === user?.username && x.status === "เสร็จสิ้น")
+    );
 
-    const load = useCallback(() => {
-        api("/reports")
-            .then((r) => setReports((r.data || []).filter((x) => x.owner === user?.username && x.status === "เสร็จสิ้น")))
-            .catch(console.error);
+    const reload = useCallback(() => {
+        setReports(getReports().filter((x) => x.owner === user?.username && x.status === "เสร็จสิ้น"));
     }, [user]);
 
-    useEffect(() => { load(); }, [load]);
-
-    async function toggleLike(id) {
-        try { await api(`/reports/${id}/like`, { method: "POST", body: JSON.stringify({ username: user.username }) }); load(); } catch (e) { console.error(e); }
-    }
-
-    async function toggleDislike(id) {
-        try { await api(`/reports/${id}/dislike`, { method: "POST", body: JSON.stringify({ username: user.username }) }); load(); } catch (e) { console.error(e); }
-    }
-
-    async function addComment(id) {
+    function handleLike(id) { toggleLike(id, user.username); reload(); }
+    function handleDislike(id) { toggleDislike(id, user.username); reload(); }
+    function handleComment(id) {
         const text = prompt("เพิ่มความเห็น:");
         if (!text?.trim()) return;
-        try { await api(`/reports/${id}/comment`, { method: "POST", body: JSON.stringify({ author: user.username, text }) }); load(); } catch (e) { console.error(e); }
+        addComment(id, user.username, text);
+        reload();
     }
 
     return (
@@ -35,7 +28,7 @@ export default function DonePage() {
                 <div className="empty-state">ยังไม่มีงานเสร็จแล้ว</div>
             ) : (
                 reports.map((r) => (
-                    <div key={r.reportId || r._id} className="report-card border-done">
+                    <div key={r.reportId} className="report-card border-done">
                         <strong>✅ {r.category}</strong>
                         <div className="report-date">📅 {new Date(r.createdAt).toLocaleString("th-TH")} | #{r.reportId}</div>
                         <div className="report-detail">{r.detail}</div>
@@ -47,9 +40,9 @@ export default function DonePage() {
                         )}
 
                         <div className="report-actions">
-                            <button className="btn-like" onClick={() => toggleLike(r.reportId)}>👍 {r.likesCount || 0}</button>
-                            <button className="btn-dislike" onClick={() => toggleDislike(r.reportId)}>👎 {r.dislikesCount || 0}</button>
-                            <button className="btn-ghost-sm" onClick={() => addComment(r.reportId)}>💬 ให้ความเห็น</button>
+                            <button className="btn-like" onClick={() => handleLike(r.reportId)}>👍 {r.likesCount || 0}</button>
+                            <button className="btn-dislike" onClick={() => handleDislike(r.reportId)}>👎 {r.dislikesCount || 0}</button>
+                            <button className="btn-ghost-sm" onClick={() => handleComment(r.reportId)}>💬 ให้ความเห็น</button>
                         </div>
                     </div>
                 ))

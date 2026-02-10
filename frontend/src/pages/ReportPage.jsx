@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { api } from "../api";
+import { useState, useCallback } from "react";
+import { getReports, createReport, deleteReport, toggleLike, toggleDislike, addComment } from "../api";
 import { useAuth } from "../AuthContext";
 
 const PRIORITY_COLOR = { low: "#28a745", medium: "#17a2b8", high: "#ffc107", critical: "#ff6b6b" };
@@ -7,55 +7,38 @@ const PRIORITY_TEXT = { low: "ต่ำ", medium: "ปกติ", high: "สู�
 
 export default function ReportPage() {
     const { user } = useAuth();
-    const [reports, setReports] = useState([]);
+    const [reports, setReports] = useState(() => getReports().filter((x) => x.owner === user?.username));
     const [cat, setCat] = useState("ไฟฟ้า");
     const [priority, setPriority] = useState("medium");
     const [detail, setDetail] = useState("");
-    const [submitting, setSubmitting] = useState(false);
 
-    const load = useCallback(() => {
-        api("/reports").then((r) => setReports((r.data || []).filter((x) => x.owner === user?.username))).catch(console.error);
+    const reload = useCallback(() => {
+        setReports(getReports().filter((x) => x.owner === user?.username));
     }, [user]);
 
-    useEffect(() => { load(); }, [load]);
-
-    async function submit(e) {
+    function submit(e) {
         e.preventDefault();
         if (!detail.trim()) { alert("❌ กรุณากรอกรายละเอียด"); return; }
-        setSubmitting(true);
-        try {
-            await api("/reports", {
-                method: "POST",
-                body: JSON.stringify({ reportId: Date.now(), category: cat, detail, priority, owner: user.username }),
-            });
-            setDetail("");
-            setPriority("medium");
-            alert("✓ ส่ง Report สำเร็จ!");
-            load();
-        } catch (err) {
-            alert("❌ " + err.message);
-        } finally {
-            setSubmitting(false);
-        }
+        createReport({ category: cat, detail, priority, owner: user.username });
+        setDetail("");
+        setPriority("medium");
+        alert("✓ ส่ง Report สำเร็จ!");
+        reload();
     }
 
-    async function deleteReport(id) {
+    function handleDelete(id) {
         if (!confirm("ต้องการลบงานนี้หรือไม่?")) return;
-        try { await api(`/reports/${id}`, { method: "DELETE" }); load(); } catch (e) { console.error(e); }
+        deleteReport(id);
+        reload();
     }
 
-    async function toggleLike(id) {
-        try { await api(`/reports/${id}/like`, { method: "POST", body: JSON.stringify({ username: user.username }) }); load(); } catch (e) { console.error(e); }
-    }
-
-    async function toggleDislike(id) {
-        try { await api(`/reports/${id}/dislike`, { method: "POST", body: JSON.stringify({ username: user.username }) }); load(); } catch (e) { console.error(e); }
-    }
-
-    async function addComment(id) {
+    function handleLike(id) { toggleLike(id, user.username); reload(); }
+    function handleDislike(id) { toggleDislike(id, user.username); reload(); }
+    function handleComment(id) {
         const text = prompt("เพิ่มความเห็น:");
         if (!text?.trim()) return;
-        try { await api(`/reports/${id}/comment`, { method: "POST", body: JSON.stringify({ author: user.username, text }) }); load(); } catch (e) { console.error(e); }
+        addComment(id, user.username, text);
+        reload();
     }
 
     function statusClass(s) {
@@ -93,8 +76,8 @@ export default function ReportPage() {
                     <label>📝 รายละเอียด</label>
                     <textarea value={detail} onChange={(e) => setDetail(e.target.value)} placeholder="อธิบายปัญหาที่พบ..." rows={4} />
                 </div>
-                <button type="submit" className="btn-primary full-width" disabled={submitting}>
-                    {submitting ? "กำลังส่ง..." : "📤 ส่ง Report"}
+                <button type="submit" className="btn-primary full-width">
+                    📤 ส่ง Report
                 </button>
             </form>
 
@@ -104,7 +87,7 @@ export default function ReportPage() {
                 <div className="empty-state">📭 ยังไม่มี Report</div>
             ) : (
                 reports.map((r) => (
-                    <div key={r.reportId || r._id} className={`report-card border-${statusClass(r.status)}`}>
+                    <div key={r.reportId} className={`report-card border-${statusClass(r.status)}`}>
                         <div className="report-header">
                             <strong>#{r.reportId} - {r.category}</strong>
                             <span className={`tag ${statusClass(r.status)}`}>{r.status}</span>
@@ -122,10 +105,10 @@ export default function ReportPage() {
                         )}
 
                         <div className="report-actions">
-                            <button className="btn-like" onClick={() => toggleLike(r.reportId)}>👍 {r.likesCount || 0}</button>
-                            <button className="btn-dislike" onClick={() => toggleDislike(r.reportId)}>👎 {r.dislikesCount || 0}</button>
-                            {r.status === "เสร็จสิ้น" && <button className="btn-ghost-sm" onClick={() => addComment(r.reportId)}>💬 ให้ความเห็น</button>}
-                            <button className="btn-ghost-sm danger" onClick={() => deleteReport(r.reportId)}>🗑️ ลบ</button>
+                            <button className="btn-like" onClick={() => handleLike(r.reportId)}>👍 {r.likesCount || 0}</button>
+                            <button className="btn-dislike" onClick={() => handleDislike(r.reportId)}>👎 {r.dislikesCount || 0}</button>
+                            {r.status === "เสร็จสิ้น" && <button className="btn-ghost-sm" onClick={() => handleComment(r.reportId)}>💬 ให้ความเห็น</button>}
+                            <button className="btn-ghost-sm danger" onClick={() => handleDelete(r.reportId)}>🗑️ ลบ</button>
                         </div>
                     </div>
                 ))

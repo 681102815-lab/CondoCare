@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { api } from "../api";
+import { getReports } from "../api";
 
 export default function OverviewPage() {
     const [reports, setReports] = useState([]);
 
     useEffect(() => {
-        api("/reports").then((r) => setReports(r.data || [])).catch(console.error);
+        setReports(getReports());
     }, []);
 
     const total = reports.length;
