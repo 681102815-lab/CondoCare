@@ -38,6 +38,36 @@ export async function loginUser(username, password) {
     };
 }
 
+export async function getUsers() {
+    const res = await api("/auth/users");
+    return res.data || [];
+}
+
+export async function registerUser(username, password, role, firstName) {
+    return api("/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ username, password, role, firstName }),
+    });
+}
+
+export async function deleteUser(userId) {
+    return api(`/auth/users/${userId}`, { method: "DELETE" });
+}
+
+export async function changePassword(oldPassword, newPassword) {
+    return api("/auth/change-password", {
+        method: "PUT",
+        body: JSON.stringify({ oldPassword, newPassword }),
+    });
+}
+
+export async function updateName(firstName) {
+    return api("/auth/update-name", {
+        method: "PUT",
+        body: JSON.stringify({ firstName }),
+    });
+}
+
 // ========== Reports ==========
 export async function getReports() {
     const res = await api("/reports");

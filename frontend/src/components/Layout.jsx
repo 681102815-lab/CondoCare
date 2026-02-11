@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { useAuth } from "../AuthContext";
+import { changePassword, updateName } from "../api";
 
 const NAV_ITEMS = [
     { key: "overview", label: "📊 ภาพรวม", roles: ["admin", "tech", "resident"] },
     { key: "report", label: "📋 แจ้งปัญหา", roles: ["admin", "tech", "resident"] },
     { key: "done", label: "✅ งานเสร็จแล้ว", roles: ["resident"] },
     { key: "manage", label: "⚙️ จัดการงาน", roles: ["admin", "tech"] },
+    { key: "users", label: "👥 สมาชิก", roles: ["admin"] },
 ];
 
 export default function Layout({ children, activePage, onNavigate }) {
-    const { user, logout } = useAuth();
+    const { user, logout, updateUser } = useAuth();
 
     const visibleItems = NAV_ITEMS.filter((item) => item.roles.includes(user?.role));
 
@@ -46,6 +48,40 @@ export default function Layout({ children, activePage, onNavigate }) {
                             {item.label}
                         </button>
                     ))}
+                    <hr style={{ border: "none", borderTop: "1px solid #333", margin: "0.5rem 0" }} />
+                    <button
+                        className="nav-link"
+                        onClick={async () => {
+                            const oldPw = prompt("กรอกรหัสเก่า:");
+                            if (!oldPw) return;
+                            const newPw = prompt("กรอกรหัสใหม่ (อย่างน้อย 4 ตัว):");
+                            if (!newPw) return;
+                            try {
+                                await changePassword(oldPw, newPw);
+                                alert("✅ เปลี่ยนรหัสผ่านสำเร็จ!");
+                            } catch (err) {
+                                alert("❌ " + err.message);
+                            }
+                        }}
+                    >
+                        🔑 เปลี่ยนรหัส
+                    </button>
+                    <button
+                        className="nav-link"
+                        onClick={async () => {
+                            const newName = prompt("กรอกชื่อใหม่ (ชื่อแสดงผลเท่านั้น เลขห้องเปลี่ยนไม่ได้):");
+                            if (!newName?.trim()) return;
+                            try {
+                                const res = await updateName(newName.trim());
+                                updateUser({ name: res.firstName });
+                                alert("✅ เปลี่ยนชื่อเป็น: " + res.firstName);
+                            } catch (err) {
+                                alert("❌ " + err.message);
+                            }
+                        }}
+                    >
+                        ✏️ แก้ชื่อ
+                    </button>
                 </aside>
 
                 <main className="main-content card">{children}</main>

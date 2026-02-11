@@ -86,6 +86,20 @@ export default function ManagePage() {
                                             <span className="like-text">👍 ถูกใจ: {r.likesCount || 0}</span>
                                             {" | "}
                                             <span className="dislike-text">👎 ไม่ถูกใจ: {r.dislikesCount || 0}</span>
+                                            {r.comments && r.comments.length > 0 && (
+                                                <div style={{ marginTop: "0.75rem", paddingTop: "0.5rem", borderTop: "1px solid #333" }}>
+                                                    <strong>💬 ความคิดเห็น ({r.comments.length}):</strong>
+                                                    {r.comments.map((c, i) => (
+                                                        <div key={c.commentId || i} style={{ marginTop: "0.4rem", padding: "0.4rem 0.6rem", background: "#1a1a2e", borderRadius: "6px", fontSize: "0.85rem" }}>
+                                                            <strong style={{ color: "#4fc3f7" }}>{c.author}</strong>
+                                                            <span style={{ color: "#888", marginLeft: "0.5rem", fontSize: "0.75rem" }}>
+                                                                {new Date(c.createdAt).toLocaleString("th-TH")}
+                                                            </span>
+                                                            <div style={{ marginTop: "0.2rem" }}>{c.text}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 </React.Fragment>

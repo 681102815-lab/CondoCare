@@ -6,6 +6,7 @@ import OverviewPage from "./pages/OverviewPage";
 import ReportPage from "./pages/ReportPage";
 import DonePage from "./pages/DonePage";
 import ManagePage from "./pages/ManagePage";
+import AdminUsersPage from "./pages/AdminUsersPage";
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -19,6 +20,7 @@ function AppContent() {
     report: <ReportPage />,
     done: <DonePage />,
     manage: <ManagePage />,
+    users: <AdminUsersPage />,
   };
 
   return (
