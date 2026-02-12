@@ -82,10 +82,33 @@ export default function ManagePage() {
                                         <td colSpan={7}>
                                             <strong>📝 รายละเอียด:</strong> {r.detail}
                                             {r.feedback && <><br /><strong className="accent-text">💬 หมายเหตุ:</strong> {r.feedback}</>}
-                                            <br />
-                                            <span className="like-text">👍 ถูกใจ: {r.likesCount || 0}</span>
-                                            {" | "}
-                                            <span className="dislike-text">👎 ไม่ถูกใจ: {r.dislikesCount || 0}</span>
+
+                                            {/* ——— Timeline เวลา ——— */}
+                                            <div style={{ marginTop: "0.75rem", paddingTop: "0.5rem", borderTop: "1px solid #333", display: "flex", gap: "1.5rem", flexWrap: "wrap", fontSize: "0.85rem" }}>
+                                                <span style={{ color: "#4fc3f7" }}>
+                                                    📅 แจ้งเมื่อ: <strong>{new Date(r.createdAt).toLocaleString("th-TH")}</strong>
+                                                    {" "}({Math.floor((Date.now() - new Date(r.createdAt).getTime()) / 86400000)} วันที่แล้ว)
+                                                </span>
+                                                {r.startedAt && (
+                                                    <span style={{ color: "#ffc107" }}>
+                                                        🔧 เริ่มงาน: <strong>{new Date(r.startedAt).toLocaleString("th-TH")}</strong>
+                                                    </span>
+                                                )}
+                                                {r.completedAt && (
+                                                    <span style={{ color: "#28a745" }}>
+                                                        ✅ เสร็จ: <strong>{new Date(r.completedAt).toLocaleString("th-TH")}</strong>
+                                                        {r.startedAt && (
+                                                            <span> (ใช้เวลา {Math.max(1, Math.ceil((new Date(r.completedAt).getTime() - new Date(r.startedAt).getTime()) / 86400000))} วัน)</span>
+                                                        )}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div style={{ marginTop: "0.5rem" }}>
+                                                <span className="like-text">👍 ถูกใจ: {r.likesCount || 0}</span>
+                                                {" | "}
+                                                <span className="dislike-text">👎 ไม่ถูกใจ: {r.dislikesCount || 0}</span>
+                                            </div>
                                             {r.comments && r.comments.length > 0 && (
                                                 <div style={{ marginTop: "0.75rem", paddingTop: "0.5rem", borderTop: "1px solid #333" }}>
                                                     <strong>💬 ความคิดเห็น ({r.comments.length}):</strong>

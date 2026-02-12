@@ -31,8 +31,20 @@ export default function DonePage() {
                 reports.map((r) => (
                     <div key={r.reportId || r._id} className="report-card border-done">
                         <strong>✅ {r.category}</strong>
-                        <div className="report-date">📅 {new Date(r.createdAt).toLocaleString("th-TH")} | #{r.reportId}</div>
+                        <div className="report-date">📅 แจ้งเมื่อ: {new Date(r.createdAt).toLocaleString("th-TH")} | #{r.reportId}</div>
                         <div className="report-detail">{r.detail}</div>
+                        {/* ——— Timeline ——— */}
+                        <div style={{ margin: "0.5rem 0", padding: "0.5rem", background: "#1a1a2e", borderRadius: "8px", fontSize: "0.85rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                            {r.startedAt && (
+                                <span style={{ color: "#ffc107" }}>🔧 เริ่มงาน: {new Date(r.startedAt).toLocaleString("th-TH")}</span>
+                            )}
+                            {r.completedAt && (
+                                <span style={{ color: "#28a745" }}>
+                                    ✅ เสร็จ: {new Date(r.completedAt).toLocaleString("th-TH")}
+                                    {r.startedAt && ` (ใช้เวลา ${Math.max(1, Math.ceil((new Date(r.completedAt).getTime() - new Date(r.startedAt).getTime()) / 86400000))} วัน)`}
+                                </span>
+                            )}
+                        </div>
                         {r.feedback && (
                             <div className="feedback-box">
                                 <strong>💬 หมายเหตุจากช่าง:</strong><br />{r.feedback}
