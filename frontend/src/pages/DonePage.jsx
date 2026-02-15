@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { getReports, toggleLike, toggleDislike, addComment } from "../api";
 import { useAuth } from "../AuthContext";
+import Modal from "../components/Modal";
 
 export default function DonePage() {
     const { user } = useAuth();
     const [reports, setReports] = useState([]);
+    const [commentModal, setCommentModal] = useState({ open: false, reportId: null });
 
     const reload = useCallback(() => {
         getReports()
@@ -16,10 +18,17 @@ export default function DonePage() {
 
     async function handleLike(id) { try { await toggleLike(id, user.username); reload(); } catch (e) { console.error(e); } }
     async function handleDislike(id) { try { await toggleDislike(id, user.username); reload(); } catch (e) { console.error(e); } }
-    async function handleComment(id) {
-        const text = prompt("เพิ่มความเห็น:");
-        if (!text?.trim()) return;
-        try { await addComment(id, user.username, text); reload(); } catch (e) { console.error(e); }
+
+    async function handleCommentSubmit(values) {
+        if (!values.comment?.trim()) return;
+        try {
+            await addComment(commentModal.reportId, user.username, values.comment);
+            setCommentModal({ open: false, reportId: null });
+            reload();
+        } catch (e) {
+            console.error(e);
+            alert("❌ " + e.message);
+        }
     }
 
     return (
@@ -53,11 +62,21 @@ export default function DonePage() {
                         <div className="report-actions">
                             <button className="btn-like" onClick={() => handleLike(r.reportId)}>👍 {r.likesCount || 0}</button>
                             <button className="btn-dislike" onClick={() => handleDislike(r.reportId)}>👎 {r.dislikesCount || 0}</button>
-                            <button className="btn-ghost-sm" onClick={() => handleComment(r.reportId)}>💬 ให้ความเห็น</button>
+                            <button className="btn-ghost-sm" onClick={() => setCommentModal({ open: true, reportId: r.reportId })}>💬 ให้ความเห็น</button>
                         </div>
                     </div>
                 ))
             )}
+
+            <Modal
+                open={commentModal.open}
+                title="💬 เพิ่มความคิดเห็น"
+                onClose={() => setCommentModal({ open: false, reportId: null })}
+                onSubmit={handleCommentSubmit}
+                fields={[
+                    { name: "comment", label: "ข้อความ", placeholder: "พิมพ์ความคิดเห็นของคุณ...", required: true },
+                ]}
+            />
         </section>
     );
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getReports, createReport, deleteReport, toggleLike, toggleDislike, addComment } from "../api";
 import { useAuth } from "../AuthContext";
+import Modal from "../components/Modal";
 
 const PRIORITY_COLOR = { low: "#28a745", medium: "#17a2b8", high: "#ffc107", critical: "#ff6b6b" };
 const PRIORITY_TEXT = { low: "ต่ำ", medium: "ปกติ", high: "สูง", critical: "วิกฤต" };
@@ -12,6 +13,7 @@ export default function ReportPage() {
     const [priority, setPriority] = useState("medium");
     const [detail, setDetail] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [commentModal, setCommentModal] = useState({ open: false, reportId: null });
 
     const reload = useCallback(() => {
         getReports().then((all) => setReports(all.filter((x) => x.owner === user?.username))).catch(console.error);
@@ -43,10 +45,17 @@ export default function ReportPage() {
 
     async function handleLike(id) { try { await toggleLike(id, user.username); reload(); } catch (e) { console.error(e); } }
     async function handleDislike(id) { try { await toggleDislike(id, user.username); reload(); } catch (e) { console.error(e); } }
-    async function handleComment(id) {
-        const text = prompt("เพิ่มความเห็น:");
-        if (!text?.trim()) return;
-        try { await addComment(id, user.username, text); reload(); } catch (e) { console.error(e); }
+
+    async function handleCommentSubmit(values) {
+        if (!values.comment?.trim()) return;
+        try {
+            await addComment(commentModal.reportId, user.username, values.comment);
+            setCommentModal({ open: false, reportId: null });
+            reload();
+        } catch (e) {
+            console.error(e);
+            alert("❌ " + e.message);
+        }
     }
 
     function statusClass(s) {
@@ -111,12 +120,22 @@ export default function ReportPage() {
                         <div className="report-actions">
                             <button className="btn-like" onClick={() => handleLike(r.reportId)}>👍 {r.likesCount || 0}</button>
                             <button className="btn-dislike" onClick={() => handleDislike(r.reportId)}>👎 {r.dislikesCount || 0}</button>
-                            {r.status === "เสร็จสิ้น" && <button className="btn-ghost-sm" onClick={() => handleComment(r.reportId)}>💬 ให้ความเห็น</button>}
+                            {r.status === "เสร็จสิ้น" && <button className="btn-ghost-sm" onClick={() => setCommentModal({ open: true, reportId: r.reportId })}>💬 ให้ความเห็น</button>}
                             <button className="btn-ghost-sm danger" onClick={() => handleDelete(r.reportId)}>🗑️ ลบ</button>
                         </div>
                     </div>
                 ))
             )}
+
+            <Modal
+                open={commentModal.open}
+                title="💬 เพิ่มความคิดเห็น"
+                onClose={() => setCommentModal({ open: false, reportId: null })}
+                onSubmit={handleCommentSubmit}
+                fields={[
+                    { name: "comment", label: "ข้อความ", placeholder: "พิมพ์ความคิดเห็นของคุณ...", required: true },
+                ]}
+            />
         </section>
     );
 }

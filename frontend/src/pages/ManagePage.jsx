@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { getReports, updateReportStatus, updateReportFeedback } from "../api";
+import Modal from "../components/Modal";
 
 const PRIORITY_COLOR = { low: "#28a745", medium: "#17a2b8", high: "#ffc107", critical: "#ff6b6b" };
 const PRIORITY_TEXT = { low: "ต่ำ", medium: "ปกติ", high: "สูง", critical: "วิกฤต" };
@@ -7,6 +8,7 @@ const PRIORITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 
 export default function ManagePage() {
     const [reports, setReports] = useState([]);
+    const [feedbackModal, setFeedbackModal] = useState({ open: false, reportId: null });
 
     const reload = useCallback(() => {
         getReports()
@@ -20,10 +22,16 @@ export default function ManagePage() {
         try { await updateReportStatus(id, status); reload(); } catch (e) { console.error(e); }
     }
 
-    async function handleFeedback(id) {
-        const feedback = prompt("เพิ่มหมายเหตุ:");
-        if (!feedback?.trim()) return;
-        try { await updateReportFeedback(id, feedback); reload(); } catch (e) { console.error(e); }
+    async function handleFeedbackSubmit(values) {
+        if (!values.feedback?.trim()) return;
+        try {
+            await updateReportFeedback(feedbackModal.reportId, values.feedback);
+            setFeedbackModal({ open: false, reportId: null });
+            reload();
+        } catch (e) {
+            console.error(e);
+            alert("❌ " + e.message);
+        }
     }
 
     function statusClass(s) {
@@ -75,7 +83,7 @@ export default function ManagePage() {
                                                 <option>กำลังดำเนินการ</option>
                                                 <option>เสร็จสิ้น</option>
                                             </select>
-                                            <button className="btn-ghost-sm" onClick={() => handleFeedback(r.reportId)}>✏️</button>
+                                            <button className="btn-ghost-sm" onClick={() => setFeedbackModal({ open: true, reportId: r.reportId })}>✏️</button>
                                         </td>
                                     </tr>
                                     <tr className="detail-row">
@@ -130,8 +138,17 @@ export default function ManagePage() {
                         </tbody>
                     </table>
                 </div>
-            )
-            }
+            )}
+
+            <Modal
+                open={feedbackModal.open}
+                title="✏️ เพิ่มหมายเหตุ"
+                onClose={() => setFeedbackModal({ open: false, reportId: null })}
+                onSubmit={handleFeedbackSubmit}
+                fields={[
+                    { name: "feedback", label: "ข้อความ", placeholder: "ระบุสาเหตุหรือรายละเอียดการแก้ไข...", required: true },
+                ]}
+            />
         </section >
     );
 }
