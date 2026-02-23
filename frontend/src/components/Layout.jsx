@@ -5,16 +5,15 @@ import Modal from "./Modal";
 
 const NAV_ITEMS = [
     { key: "overview", label: "📊 ภาพรวม", roles: ["admin", "tech", "resident"] },
-    { key: "report", label: "📋 แจ้งปัญหา", roles: ["admin", "tech", "resident"] },
+    { key: "report", label: "📋 แจ้งปัญหา", techLabel: "📋 รายการแจ้ง", roles: ["admin", "tech", "resident"] },
     { key: "done", label: "✅ งานเสร็จแล้ว", roles: ["resident"] },
     { key: "manage", label: "⚙️ จัดการงาน", roles: ["admin", "tech"] },
     { key: "users", label: "👥 สมาชิก", roles: ["admin"] },
+    { key: "profile", label: "👤 ตั้งค่าโปรไฟล์", roles: ["admin", "tech", "resident"] },
 ];
 
 export default function Layout({ children, activePage, onNavigate }) {
     const { user, logout, updateUser } = useAuth();
-    const [pwModal, setPwModal] = useState(false);
-    const [nameModal, setNameModal] = useState(false);
     const [toast, setToast] = useState(null);
 
     const visibleItems = NAV_ITEMS.filter((item) => item.roles.includes(user?.role));
@@ -22,27 +21,6 @@ export default function Layout({ children, activePage, onNavigate }) {
     function showToast(msg, type = "success") {
         setToast({ msg, type });
         setTimeout(() => setToast(null), 3000);
-    }
-
-    async function handlePasswordChange(values) {
-        try {
-            await changePassword(values.oldPassword, values.newPassword);
-            setPwModal(false);
-            showToast("✅ เปลี่ยนรหัสผ่านสำเร็จ!");
-        } catch (err) {
-            showToast("❌ " + err.message, "error");
-        }
-    }
-
-    async function handleNameChange(values) {
-        try {
-            const res = await updateName(values.firstName);
-            updateUser({ name: res.firstName });
-            setNameModal(false);
-            showToast("✅ เปลี่ยนชื่อเป็น: " + res.firstName);
-        } catch (err) {
-            showToast("❌ " + err.message, "error");
-        }
     }
 
     return (
@@ -65,11 +43,11 @@ export default function Layout({ children, activePage, onNavigate }) {
                         <span className="user-avatar">{user?.name?.[0] || "?"}</span>
                         <span className="user-info">
                             <span className="user-name">{user?.name}</span>
-                            <span className="user-role">{user?.role}</span>
+                            <span className="user-role">{user?.role === "admin" ? "👑 แอดมิน" : user?.role === "tech" ? "🔧 ช่าง" : "🏠 ผู้พักอาศัย"}</span>
                         </span>
                     </div>
                     <button className="btn-ghost" onClick={logout}>
-                        Logout
+                        🚪 ออกจากระบบ
                     </button>
                 </div>
             </header>
@@ -82,43 +60,14 @@ export default function Layout({ children, activePage, onNavigate }) {
                             className={`nav-link ${activePage === item.key ? "active" : ""}`}
                             onClick={() => onNavigate(item.key)}
                         >
-                            {item.label}
+                            {/* Tech เห็น "รายการแจ้ง" แทน "แจ้งปัญหา" */}
+                            {item.techLabel && user?.role === "tech" ? item.techLabel : item.label}
                         </button>
                     ))}
-                    <hr style={{ border: "none", borderTop: "1px solid #333", margin: "0.5rem 0" }} />
-                    <button className="nav-link" onClick={() => setPwModal(true)}>
-                        🔑 เปลี่ยนรหัส
-                    </button>
-                    <button className="nav-link" onClick={() => setNameModal(true)}>
-                        ✏️ แก้ชื่อ
-                    </button>
                 </aside>
 
                 <main className="main-content card">{children}</main>
             </div>
-
-            {/* Password Change Modal */}
-            <Modal
-                open={pwModal}
-                title="🔑 เปลี่ยนรหัสผ่าน"
-                onClose={() => setPwModal(false)}
-                onSubmit={handlePasswordChange}
-                fields={[
-                    { name: "oldPassword", label: "รหัสผ่านเดิม", type: "password", placeholder: "กรอกรหัสเก่า" },
-                    { name: "newPassword", label: "รหัสผ่านใหม่", type: "password", placeholder: "กรอกรหัสใหม่", minLength: 4, hint: "อย่างน้อย 4 ตัวอักษร" },
-                ]}
-            />
-
-            {/* Name Change Modal */}
-            <Modal
-                open={nameModal}
-                title="✏️ เปลี่ยนชื่อแสดงผล"
-                onClose={() => setNameModal(false)}
-                onSubmit={handleNameChange}
-                fields={[
-                    { name: "firstName", label: "ชื่อใหม่", placeholder: "กรอกชื่อแสดงผล", hint: "เลขห้องเปลี่ยนไม่ได้ เปลี่ยนได้เฉพาะชื่อแสดงผล" },
-                ]}
-            />
         </div>
     );
 }

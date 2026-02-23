@@ -1,7 +1,5 @@
 /*  CondoCare — API Layer
  *  Connects to backend server (Express + MongoDB)
- *  Local dev: http://localhost:5000
- *  Production: set VITE_API_URL env variable
  */
 
 const PROD_API = "https://condocare-backend.onrender.com/api";
@@ -50,6 +48,13 @@ export async function registerUser(username, password, role, firstName) {
     });
 }
 
+export async function editUser(userId, data) {
+    return api(`/auth/users/${userId}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+    });
+}
+
 export async function deleteUser(userId) {
     return api(`/auth/users/${userId}`, { method: "DELETE" });
 }
@@ -74,11 +79,24 @@ export async function getReports() {
     return res.data || [];
 }
 
-export async function createReport({ category, detail, priority, owner }) {
-    return api("/reports", {
-        method: "POST",
-        body: JSON.stringify({ reportId: Date.now(), category, detail, priority, owner }),
-    });
+export async function createReportWithImages({ category, customCategory, detail, priority, owner, location, images }) {
+    const formData = new FormData();
+    formData.append("category", category);
+    if (customCategory) formData.append("customCategory", customCategory);
+    formData.append("detail", detail);
+    formData.append("priority", priority);
+    formData.append("owner", owner);
+    if (location) formData.append("location", location);
+    for (const img of (images || [])) {
+        formData.append("images", img);
+    }
+    const token = getToken();
+    const headers = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    const res = await fetch(`${API_URL}/reports`, { method: "POST", headers, body: formData });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.message || res.statusText);
+    return json;
 }
 
 export async function deleteReport(reportId) {
@@ -93,6 +111,10 @@ export async function updateReportFeedback(reportId, feedback) {
     return api(`/reports/${reportId}/feedback`, { method: "PUT", body: JSON.stringify({ feedback }) });
 }
 
+export async function updateReportRating(reportId, rating) {
+    return api(`/reports/${reportId}/rating`, { method: "PUT", body: JSON.stringify({ rating }) });
+}
+
 export async function toggleLike(reportId, username) {
     return api(`/reports/${reportId}/like`, { method: "POST", body: JSON.stringify({ username }) });
 }
@@ -103,4 +125,18 @@ export async function toggleDislike(reportId, username) {
 
 export async function addComment(reportId, author, text) {
     return api(`/reports/${reportId}/comment`, { method: "POST", body: JSON.stringify({ author, text }) });
+}
+
+export async function uploadCompletionImages(reportId, images) {
+    const formData = new FormData();
+    for (const img of images) {
+        formData.append("images", img);
+    }
+    const token = getToken();
+    const headers = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    const res = await fetch(`${API_URL}/reports/${reportId}/completion-images`, { method: "POST", headers, body: formData });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.message || res.statusText);
+    return json;
 }

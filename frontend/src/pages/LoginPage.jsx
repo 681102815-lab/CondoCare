@@ -5,6 +5,7 @@ export default function LoginPage() {
     const { login } = useAuth();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -27,26 +28,41 @@ export default function LoginPage() {
             <form className="login-card" onSubmit={handleSubmit}>
                 <div className="login-icon">🏢</div>
                 <h2>CondoCare</h2>
-                <p className="muted">เข้าสู่ระบบ — Admin / ช่าง / ผู้พัก</p>
+                <p className="muted">ระบบแจ้งซ่อมคอนโดมิเนียม</p>
 
                 <div className="input-group">
                     <label>Username</label>
                     <input
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        placeholder="username"
+                        placeholder="กรอกชื่อผู้ใช้"
                         autoComplete="off"
                     />
                 </div>
                 <div className="input-group">
                     <label>Password</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="password"
-                        autoComplete="off"
-                    />
+                    <div style={{ position: "relative" }}>
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="กรอกรหัสผ่าน"
+                            autoComplete="off"
+                            style={{ paddingRight: "2.5rem" }}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{
+                                position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)",
+                                background: "none", border: "none", cursor: "pointer",
+                                fontSize: "1.1rem", color: "#888", padding: "4px",
+                            }}
+                            tabIndex={-1}
+                        >
+                            {showPassword ? "🙈" : "👁️"}
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" className="btn-primary full-width" disabled={loading}>
@@ -55,12 +71,9 @@ export default function LoginPage() {
 
                 {error && <div className="error-text">{error}</div>}
 
-                <div className="demo-accounts">
-                    <span>ตัวอย่างบัญชี:</span>
-                    <code>admin / 1234</code>
-                    <code>tech / 1234</code>
-                    <code>resident / 1234</code>
-                </div>
+                <p className="muted" style={{ marginTop: "1rem", fontSize: "0.8rem" }}>
+                    ยังไม่มีบัญชี? กรุณาติดต่อนิติบุคคลเพื่อขอสิทธิ์เข้าใช้งาน
+                </p>
             </form>
         </div>
     );

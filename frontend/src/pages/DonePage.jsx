@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { getReports, toggleLike, toggleDislike, addComment } from "../api";
+import { getReports, toggleLike, toggleDislike, addComment, updateReportRating } from "../api";
 import { useAuth } from "../AuthContext";
 import Modal from "../components/Modal";
 
@@ -7,6 +7,8 @@ export default function DonePage() {
     const { user } = useAuth();
     const [reports, setReports] = useState([]);
     const [commentModal, setCommentModal] = useState({ open: false, reportId: null });
+    const [lightbox, setLightbox] = useState(null);
+    const [ratingHover, setRatingHover] = useState({});
 
     const reload = useCallback(() => {
         getReports()
@@ -18,6 +20,15 @@ export default function DonePage() {
 
     async function handleLike(id) { try { await toggleLike(id, user.username); reload(); } catch (e) { console.error(e); } }
     async function handleDislike(id) { try { await toggleDislike(id, user.username); reload(); } catch (e) { console.error(e); } }
+
+    async function handleRating(reportId, rating) {
+        try {
+            await updateReportRating(reportId, rating);
+            reload();
+        } catch (e) {
+            alert("❌ " + e.message);
+        }
+    }
 
     async function handleCommentSubmit(values) {
         if (!values.comment?.trim()) return;
@@ -39,13 +50,17 @@ export default function DonePage() {
             ) : (
                 reports.map((r) => (
                     <div key={r.reportId || r._id} className="report-card border-done">
-                        <strong>✅ {r.category}</strong>
-                        <div className="report-date">📅 แจ้งเมื่อ: {new Date(r.createdAt).toLocaleString("th-TH")} | #{r.reportId}</div>
+                        <div className="report-header">
+                            <strong>✅ RPT-{String(r.reportId).padStart(3, "0")} — {r.category}{r.customCategory ? ` (${r.customCategory})` : ""}</strong>
+                        </div>
+                        <div className="report-date">📅 แจ้งเมื่อ: {new Date(r.createdAt).toLocaleString("th-TH")}</div>
+                        {r.location && <div style={{ color: "#4fc3f7", fontSize: "0.85rem" }}>🏠 สถานที่: {r.location}</div>}
                         <div className="report-detail">{r.detail}</div>
-                        {/* ——— Timeline ——— */}
+
+                        {/* Timeline */}
                         <div style={{ margin: "0.5rem 0", padding: "0.5rem", background: "#1a1a2e", borderRadius: "8px", fontSize: "0.85rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
                             {r.startedAt && (
-                                <span style={{ color: "#ffc107" }}>🔧 เริ่มงาน: {new Date(r.startedAt).toLocaleString("th-TH")}</span>
+                                <span style={{ color: "#ffc107" }}>🔧 ช่างรับเรื่อง: {new Date(r.startedAt).toLocaleString("th-TH")}</span>
                             )}
                             {r.completedAt && (
                                 <span style={{ color: "#28a745" }}>
@@ -54,15 +69,80 @@ export default function DonePage() {
                                 </span>
                             )}
                         </div>
-                        {r.feedback && (
-                            <div className="feedback-box">
-                                <strong>💬 หมายเหตุจากช่าง:</strong><br />{r.feedback}
+
+                        {r.images && r.images.length > 0 && (
+                            <div className="report-images" style={{ margin: "0.5rem 0" }}>
+                                <strong>📷 รูปหลักฐาน:</strong>
+                                <div className="image-gallery">
+                                    {r.images.map((url, i) => (
+                                        <img key={i} src={url} alt={`evidence-${i}`} className="gallery-thumb" onClick={() => setLightbox(url)} />
+                                    ))}
+                                </div>
                             </div>
                         )}
+                        {r.completionImages && r.completionImages.length > 0 && (
+                            <div className="report-images completion" style={{ margin: "0.5rem 0" }}>
+                                <strong>✅ รูปซ่อมเสร็จ:</strong>
+                                <div className="image-gallery">
+                                    {r.completionImages.map((url, i) => (
+                                        <img key={i} src={url} alt={`completion-${i}`} className="gallery-thumb" onClick={() => setLightbox(url)} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {r.feedback && (
+                            <div className="feedback-box">
+                                <strong>💬 หมายเหตุจาก{r.feedbackBy === "admin" ? "แอดมิน" : "ช่าง"}:</strong><br />{r.feedback}
+                            </div>
+                        )}
+
+                        {/* แสดงความคิดเห็นของตัวเอง */}
+                        {r.comments && r.comments.length > 0 && (
+                            <div className="comments-section">
+                                <strong>💬 ความคิดเห็น ({r.comments.length}):</strong>
+                                {r.comments.map((c, i) => (
+                                    <div key={c.commentId || i} className="comment-item">
+                                        <span className="comment-author">{c.author}</span>
+                                        <span className="comment-date">{new Date(c.createdAt).toLocaleString("th-TH")}</span>
+                                        <p className="comment-text">{c.text}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* ⭐ Rating & Feedback — เด่นชัด */}
+                        <div className="rating-feedback-section">
+                            <div className="rating-section">
+                                <strong>⭐ ให้คะแนนช่าง:</strong>
+                                <div className="star-rating">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <span
+                                            key={star}
+                                            className={`star ${star <= (ratingHover[r.reportId] || r.rating || 0) ? "active" : ""}`}
+                                            onMouseEnter={() => setRatingHover(p => ({ ...p, [r.reportId]: star }))}
+                                            onMouseLeave={() => setRatingHover(p => ({ ...p, [r.reportId]: 0 }))}
+                                            onClick={() => handleRating(r.reportId, star)}
+                                        >
+                                            ★
+                                        </span>
+                                    ))}
+                                    <span className="rating-text">
+                                        {r.rating > 0 ? `${r.rating}/5` : "ยังไม่ได้ให้คะแนน"}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <button
+                                className="btn-comment-prominent"
+                                onClick={() => setCommentModal({ open: true, reportId: r.reportId })}
+                            >
+                                💬 เขียนความเห็น / แจ้งปัญหาเพิ่มเติม
+                            </button>
+                        </div>
+
                         <div className="report-actions">
-                            <button className="btn-like" onClick={() => handleLike(r.reportId)}>👍 {r.likesCount || 0}</button>
-                            <button className="btn-dislike" onClick={() => handleDislike(r.reportId)}>👎 {r.dislikesCount || 0}</button>
-                            <button className="btn-ghost-sm" onClick={() => setCommentModal({ open: true, reportId: r.reportId })}>💬 ให้ความเห็น</button>
+                            <button className="btn-like" onClick={() => handleLike(r.reportId)}>👍 พอใจ {r.likesCount || 0}</button>
+                            <button className="btn-dislike" onClick={() => handleDislike(r.reportId)}>👎 ไม่พอใจ {r.dislikesCount || 0}</button>
                         </div>
                     </div>
                 ))
@@ -77,6 +157,13 @@ export default function DonePage() {
                     { name: "comment", label: "ข้อความ", placeholder: "พิมพ์ความคิดเห็นของคุณ...", required: true },
                 ]}
             />
+
+            {lightbox && (
+                <div className="lightbox-overlay" onClick={() => setLightbox(null)}>
+                    <img src={lightbox} alt="full" className="lightbox-image" />
+                    <button className="lightbox-close" onClick={() => setLightbox(null)}>✕</button>
+                </div>
+            )}
         </section>
     );
 }

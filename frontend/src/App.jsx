@@ -7,6 +7,7 @@ import ReportPage from "./pages/ReportPage";
 import DonePage from "./pages/DonePage";
 import ManagePage from "./pages/ManagePage";
 import AdminUsersPage from "./pages/AdminUsersPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -16,16 +17,17 @@ function AppContent() {
   if (!user) return <LoginPage />;
 
   const pages = {
-    overview: <OverviewPage />,
+    overview: <OverviewPage onNavigate={setPage} />,
     report: <ReportPage />,
     done: <DonePage />,
     manage: <ManagePage />,
     users: <AdminUsersPage />,
+    profile: <ProfilePage />,
   };
 
   return (
     <Layout activePage={page} onNavigate={setPage}>
-      {pages[page] || <OverviewPage />}
+      {pages[page] || <OverviewPage onNavigate={setPage} />}
     </Layout>
   );
 }
