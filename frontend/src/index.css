@@ -1583,6 +1583,165 @@ select option {
   font-size: 0.85rem;
 }
 
+/* ===================== REPORT PAGE — CARD LAYOUT ===================== */
+.rp-summary {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.rp-summary-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  border-bottom: 3px solid;
+  flex: 1;
+  min-width: 80px;
+  text-align: center;
+}
+
+.rp-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.rp-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rp-card {
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  transition: box-shadow 0.2s, transform 0.15s;
+}
+
+.rp-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  transform: translateY(-1px);
+}
+
+.rp-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rp-card-id {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rp-card-num {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #888;
+}
+
+.rp-card-badges {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.rp-status-tag {
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rp-card-meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  color: #aaa;
+  margin-bottom: 0.4rem;
+}
+
+.rp-card-detail {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.5;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.rp-card-actions {
+  display: flex;
+  gap: 0.4rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rp-card-actions .btn-like,
+.rp-card-actions .btn-dislike {
+  font-size: 0.8rem;
+  padding: 4px 12px;
+}
+
+.rp-card-actions .btn-comment {
+  font-size: 0.8rem;
+  padding: 4px 12px;
+}
+
+.feedback-box {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(79, 195, 247, 0.08);
+  border-left: 3px solid #4fc3f7;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #b0bec5;
+}
+
+.comments-section {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.comment-item {
+  margin-top: 0.3rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.comment-author {
+  color: #4fc3f7;
+  font-weight: 600;
+}
+
+.comment-date {
+  color: #888;
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.comment-text {
+  margin: 0.2rem 0 0;
+}
+
 /* ===================== RESPONSIVE ===================== */
 @media (max-width: 768px) {
   .app-grid {
