@@ -1583,6 +1583,228 @@ select option {
   font-size: 0.85rem;
 }
 
+/* ===================== OVERVIEW PAGE ===================== */
+.ov-filter-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.ov-section-header {
+  margin: 1.25rem 0 0.75rem;
+  font-size: 1rem;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.ov-section-header.danger {
+  color: #ff6b6b;
+}
+
+.ov-urgent-section {
+  margin-bottom: 0.5rem;
+}
+
+.ov-urgent-cards {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ov-status-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.ov-card {
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  text-align: center;
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+
+.ov-card.clickable {
+  cursor: pointer;
+}
+
+.ov-card.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.ov-card-value {
+  font-weight: 800;
+  line-height: 1;
+}
+
+.ov-card-label {
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+  font-weight: 600;
+}
+
+.ov-card-sub {
+  font-size: 0.72rem;
+  color: #888;
+  margin-top: 0.15rem;
+}
+
+/* Urgent — Critical (largest) */
+.ov-critical {
+  background: rgba(255, 107, 107, 0.12);
+  border: 2px solid rgba(255, 107, 107, 0.35);
+  flex: 1;
+  min-width: 140px;
+}
+
+.ov-critical .ov-card-value {
+  font-size: 2.5rem;
+  color: #ff6b6b;
+}
+
+.ov-critical .ov-card-label {
+  color: #ff6b6b;
+}
+
+/* Urgent — High */
+.ov-high {
+  background: rgba(255, 193, 7, 0.1);
+  border: 2px solid rgba(255, 193, 7, 0.3);
+  flex: 1;
+  min-width: 140px;
+}
+
+.ov-high .ov-card-value {
+  font-size: 2rem;
+  color: #ffc107;
+}
+
+.ov-high .ov-card-label {
+  color: #ffc107;
+}
+
+/* Status — Wait */
+.ov-wait {
+  background: rgba(255, 193, 7, 0.08);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+}
+
+.ov-wait .ov-card-value {
+  font-size: 1.8rem;
+  color: #ffc107;
+}
+
+.ov-wait .ov-card-label {
+  color: #ffc107;
+}
+
+/* Status — Doing */
+.ov-doing {
+  background: rgba(79, 195, 247, 0.08);
+  border: 1px solid rgba(79, 195, 247, 0.2);
+}
+
+.ov-doing .ov-card-value {
+  font-size: 1.5rem;
+  color: #4fc3f7;
+}
+
+.ov-doing .ov-card-label {
+  color: #4fc3f7;
+}
+
+/* Status — Done */
+.ov-done {
+  background: rgba(40, 167, 69, 0.08);
+  border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.ov-done .ov-card-value {
+  font-size: 1.3rem;
+  color: #28a745;
+}
+
+.ov-done .ov-card-label {
+  color: #28a745;
+}
+
+/* Total bar */
+.ov-total-bar {
+  margin: 1rem 0;
+  padding: 0.6rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #aaa;
+  text-align: center;
+}
+
+.ov-pending-note {
+  color: #ffc107;
+}
+
+/* Category grid */
+.ov-cat-grid {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.ov-cat-card {
+  padding: 0.6rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  text-align: center;
+  min-width: 80px;
+  flex: 1;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.ov-cat-card.clickable {
+  cursor: pointer;
+}
+
+.ov-cat-card.clickable:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.ov-cat-count {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.ov-cat-name {
+  font-size: 0.78rem;
+  color: #aaa;
+}
+
+/* ===================== PROFILE ALERT ===================== */
+.profile-alert {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.profile-alert.success {
+  background: rgba(40, 167, 69, 0.12);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  color: #28a745;
+}
+
+.profile-alert.error {
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  color: #ff6b6b;
+}
+
 /* ===================== REPORT PAGE — CARD LAYOUT ===================== */
 .rp-summary {
   display: flex;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { changePassword, updateName } from "../api";
 import { useAuth } from "../AuthContext";
 
@@ -11,30 +11,33 @@ export default function ProfilePage() {
     const [error, setError] = useState("");
     const [showOld, setShowOld] = useState(false);
     const [showNew, setShowNew] = useState(false);
+    const timerRef = useRef(null);
+
+    function showMessage(text) { setError(""); setMsg(text); clearTimeout(timerRef.current); timerRef.current = setTimeout(() => setMsg(""), 4000); }
+    function showError(text) { setMsg(""); setError(text); clearTimeout(timerRef.current); timerRef.current = setTimeout(() => setError(""), 4000); }
+    useEffect(() => () => clearTimeout(timerRef.current), []);
 
     async function handleChangePassword(e) {
         e.preventDefault();
-        setMsg(""); setError("");
-        if (newPwd.length < 6) { setError("รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร"); return; }
+        if (newPwd.length < 6) { showError("รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร"); return; }
         try {
             await changePassword(oldPwd, newPwd);
-            setMsg("✅ เปลี่ยนรหัสผ่านสำเร็จ");
+            showMessage("✅ เปลี่ยนรหัสผ่านสำเร็จ!");
             setOldPwd(""); setNewPwd("");
         } catch (err) {
-            setError(err.message);
+            showError(err.message || "รหัสเก่าไม่ถูกต้อง");
         }
     }
 
     async function handleChangeName(e) {
         e.preventDefault();
-        setMsg(""); setError("");
-        if (!newName.trim()) { setError("กรุณากรอกชื่อใหม่"); return; }
+        if (!newName.trim()) { showError("กรุณากรอกชื่อใหม่"); return; }
         try {
             const res = await updateName(newName.trim());
-            setMsg("✅ เปลี่ยนชื่อสำเร็จ");
+            showMessage("✅ เปลี่ยนชื่อสำเร็จ!");
             if (updateUser) updateUser({ ...user, name: res.firstName || newName.trim() });
         } catch (err) {
-            setError(err.message);
+            showError(err.message);
         }
     }
 
@@ -52,8 +55,8 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            {msg && <p style={{ color: "#28a745", marginBottom: "0.75rem" }}>{msg}</p>}
-            {error && <p style={{ color: "#ff6b6b", marginBottom: "0.75rem" }}>❌ {error}</p>}
+            {msg && <div className="profile-alert success">{msg}</div>}
+            {error && <div className="profile-alert error">❌ {error}</div>}
 
             {/* Change Name */}
             <div className="card" style={{ padding: "1.5rem", marginBottom: "1.5rem" }}>

@@ -7,6 +7,12 @@ const PRIORITY_COLOR = { low: "#28a745", medium: "#17a2b8", high: "#ffc107", cri
 const PRIORITY_TEXT = { low: "ต่ำ", medium: "ปกติ", high: "สูง", critical: "วิกฤต" };
 const PRIORITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 
+function formatId(id) {
+    const num = Number(id);
+    if (num > 100000) return `RPT-${String(id).slice(-4)}`;
+    return `RPT-${String(id).padStart(3, "0")}`;
+}
+
 const STATUS_GROUPS = [
     { key: "รอรับเรื่อง", label: "📨 รอรับเรื่อง", color: "#ffc107", bgColor: "rgba(255, 193, 7, 0.08)", borderColor: "rgba(255, 193, 7, 0.25)" },
     { key: "กำลังดำเนินการ", label: "🔧 กำลังดำเนินการ", color: "#4fc3f7", bgColor: "rgba(109, 221, 255, 0.08)", borderColor: "rgba(109, 221, 255, 0.25)" },
@@ -159,7 +165,7 @@ export default function ManagePage() {
                                                         #{idx + 1}
                                                     </span>
                                                     <strong className="accent-text" style={{ fontSize: "0.95rem" }}>
-                                                        RPT-{String(r.reportId).padStart(3, "0")}
+                                                        {formatId(r.reportId)}
                                                     </strong>
                                                     <span className="priority-badge" style={{
                                                         background: PRIORITY_COLOR[r.priority],

@@ -2,12 +2,10 @@ import { useState, useEffect } from "react";
 import { getReports } from "../api";
 import { useAuth } from "../AuthContext";
 
-const PRIORITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
-
 export default function OverviewPage({ onNavigate }) {
     const { user } = useAuth();
     const [reports, setReports] = useState([]);
-    const [filter, setFilter] = useState("all"); // all, month, pending
+    const [filter, setFilter] = useState("all");
 
     useEffect(() => {
         getReports().then(setReports).catch(console.error);
@@ -33,7 +31,6 @@ export default function OverviewPage({ onNavigate }) {
     const cats = {};
     filtered.forEach(r => { cats[r.category] = (cats[r.category] || 0) + 1; });
     const sorted = Object.entries(cats).sort((a, b) => b[1] - a[1]);
-    const top = sorted[0];
 
     // งานเสร็จรายเดือน
     const monthly = {};
@@ -48,16 +45,20 @@ export default function OverviewPage({ onNavigate }) {
 
     const isResident = user?.role === "resident";
 
+    function goManage() {
+        if (onNavigate) onNavigate("manage");
+    }
+
     return (
         <section>
-            <h3>📊 ภาพรวมระบบ</h3>
+            <h3>📊 ภาพรวมระบบแจ้งซ่อม</h3>
 
             {/* Filter buttons */}
-            <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem", flexWrap: "wrap" }}>
+            <div className="ov-filter-bar">
                 {[
-                    { key: "all", label: "📋 ทั้งหมด" },
-                    { key: "month", label: "📅 เดือนนี้" },
-                    { key: "pending", label: "⏳ ยังไม่เสร็จ" },
+                    { key: "all", label: "📋 ข้อมูลทั้งหมด" },
+                    { key: "month", label: "📅 เฉพาะเดือนนี้" },
+                    { key: "pending", label: "⏳ เฉพาะงานค้าง" },
                 ].map(f => (
                     <button
                         key={f.key}
@@ -69,99 +70,91 @@ export default function OverviewPage({ onNavigate }) {
                 ))}
             </div>
 
-            {/* Main stat cards — จัดตามลำดับความสำคัญ */}
-            <div className="stats-grid-3">
-                {critical > 0 && (
-                    <div
-                        className="stat-card danger clickable"
-                        onClick={() => onNavigate && onNavigate("manage")}
-                        title="คลิกเพื่อดูรายละเอียด"
-                    >
-                        <div className="stat-value">{critical}</div>
-                        <div className="stat-label">🔴 งานวิกฤต</div>
-                        <div className="stat-sub">ต้องดำเนินการเร่งด่วน</div>
+            {/* === Urgent Section (if any) === */}
+            {(critical > 0 || high > 0) && (
+                <div className="ov-urgent-section">
+                    <h4 className="ov-section-header danger">🚨 งานเร่งด่วน</h4>
+                    <div className="ov-urgent-cards">
+                        {critical > 0 && (
+                            <div className="ov-card ov-critical clickable" onClick={goManage}>
+                                <div className="ov-card-value">{critical}</div>
+                                <div className="ov-card-label">🔴 วิกฤต</div>
+                                <div className="ov-card-sub">ต้องดำเนินการทันที</div>
+                            </div>
+                        )}
+                        {high > 0 && (
+                            <div className="ov-card ov-high clickable" onClick={goManage}>
+                                <div className="ov-card-value">{high}</div>
+                                <div className="ov-card-label">🟡 สำคัญสูง</div>
+                                <div className="ov-card-sub">ควรดำเนินการโดยเร็ว</div>
+                            </div>
+                        )}
                     </div>
-                )}
-                {high > 0 && (
-                    <div
-                        className="stat-card warning clickable"
-                        onClick={() => onNavigate && onNavigate("manage")}
-                        title="คลิกเพื่อดูรายละเอียด"
-                    >
-                        <div className="stat-value">{high}</div>
-                        <div className="stat-label">🟡 งานสำคัญสูง</div>
-                        <div className="stat-sub">ควรดำเนินการโดยเร็ว</div>
-                    </div>
-                )}
-                <div
-                    className="stat-card accent clickable"
-                    onClick={() => onNavigate && onNavigate("manage")}
-                    title="คลิกเพื่อดูรายละเอียด"
-                >
-                    <div className="stat-value">{wait}</div>
-                    <div className="stat-label">📨 รอรับเรื่อง</div>
-                    <div className="stat-sub">ยังไม่มีช่างรับงาน</div>
                 </div>
-                <div className="stat-card info">
-                    <div className="stat-value">{doing}</div>
-                    <div className="stat-label">🔧 กำลังดำเนินการ</div>
-                    <div className="stat-sub">ช่างกำลังซ่อม</div>
+            )}
+
+            {/* === Status Section === */}
+            <h4 className="ov-section-header">📋 สถานะงานแจ้งซ่อม</h4>
+            <div className="ov-status-cards">
+                <div className="ov-card ov-wait clickable" onClick={goManage}>
+                    <div className="ov-card-value">{wait}</div>
+                    <div className="ov-card-label">📨 รอรับเรื่อง</div>
+                    <div className="ov-card-sub">ยังไม่มีช่างรับงาน</div>
                 </div>
-                <div className="stat-card success">
-                    <div className="stat-value">{done}</div>
-                    <div className="stat-label">✅ เสร็จสิ้นแล้ว</div>
-                    <div className="stat-sub">{rate}% ของทั้งหมด ({total} งาน)</div>
+                <div className="ov-card ov-doing clickable" onClick={goManage}>
+                    <div className="ov-card-value">{doing}</div>
+                    <div className="ov-card-label">🔧 กำลังดำเนินการ</div>
+                    <div className="ov-card-sub">ช่างกำลังซ่อมแซม</div>
+                </div>
+                <div className="ov-card ov-done" onClick={goManage} style={{ cursor: "pointer" }}>
+                    <div className="ov-card-value">{done}</div>
+                    <div className="ov-card-label">✅ ซ่อมเสร็จแล้ว</div>
+                    <div className="ov-card-sub">{rate}% ของงานทั้งหมด {total} รายการ</div>
                 </div>
             </div>
 
-            {/* รอดำเนินการรวม */}
-            {(wait + doing) > 0 && (
-                <div
-                    className="stat-bar warning clickable"
-                    onClick={() => onNavigate && onNavigate("manage")}
-                    style={{ cursor: "pointer" }}
-                >
-                    ⏳ รอดำเนินการทั้งหมด: <strong>{wait + doing}</strong> งาน (รอรับเรื่อง {wait} + กำลังทำ {doing})
-                </div>
+            {/* === Total Bar === */}
+            <div className="ov-total-bar">
+                📊 จำนวนงานแจ้งซ่อมทั้งหมด: <strong>{total}</strong> รายการ
+                {(wait + doing) > 0 && (
+                    <span className="ov-pending-note">
+                        &nbsp;(ยังไม่เสร็จ <strong>{wait + doing}</strong> รายการ)
+                    </span>
+                )}
+            </div>
+
+            {/* === Category Breakdown (admin/tech only) === */}
+            {!isResident && sorted.length > 0 && (
+                <>
+                    <h4 className="ov-section-header">📂 จำนวนตามประเภทปัญหา</h4>
+                    <div className="ov-cat-grid">
+                        {sorted.map(([cat, count]) => (
+                            <div key={cat} className="ov-cat-card clickable" onClick={goManage}>
+                                <div className="ov-cat-count">{count}</div>
+                                <div className="ov-cat-name">{cat}</div>
+                            </div>
+                        ))}
+                    </div>
+                </>
             )}
 
-            {/* ปัญหาที่แจ้งมากที่สุด — ซ่อนจาก resident */}
-            {!isResident && top && (
-                <div className="stat-bar danger">
-                    <div className="stat-bar-title">🔥 ปัญหาที่มีการแจ้งมากที่สุด</div>
-                    <div className="stat-bar-value">{top[0]}</div>
-                    <div className="stat-bar-sub">{top[1]} งาน ({Math.round((top[1] / Math.max(total, 1)) * 100)}%)</div>
-                </div>
-            )}
-
-            {/* จำนวนตามประเภท — คลิกได้ */}
-            {!isResident && (
-                <div className="cat-grid">
-                    {sorted.map(([cat, count]) => (
-                        <div key={cat} className="cat-card clickable" onClick={() => onNavigate && onNavigate("manage")}>
-                            <div className="cat-count">{count}</div>
-                            <div className="cat-name">{cat}</div>
-                        </div>
-                    ))}
-                </div>
-            )}
-
+            {/* === Monthly Report === */}
             <hr className="divider" />
-            <h4 className="section-title">📈 งานเสร็จรายเดือน</h4>
+            <h4 className="ov-section-header">📈 สรุปงานซ่อมเสร็จรายเดือน</h4>
             {monthEntries.length > 0 ? (
                 <>
-                    <p className="muted small">📊 รวม {done} งาน | เฉลี่ย {avgPerMonth} งาน/เดือน</p>
+                    <p className="muted small">📊 รวม {done} รายการ | เฉลี่ย {avgPerMonth} รายการ/เดือน</p>
                     <div className="monthly-list">
                         {monthEntries.map(([k, v]) => (
                             <div key={k} className="monthly-row">
-                                <div><strong>{k}:</strong> <span className="accent-text">{v}</span> งาน</div>
+                                <div><strong>{k}:</strong> <span className="accent-text">{v}</span> รายการ</div>
                                 <span className="muted">{Math.round((v / Math.max(done, 1)) * 100)}%</span>
                             </div>
                         ))}
                     </div>
                 </>
             ) : (
-                <p className="muted">ยังไม่มีงานเสร็จ</p>
+                <p className="muted">ยังไม่มีงานซ่อมเสร็จ</p>
             )}
         </section>
     );

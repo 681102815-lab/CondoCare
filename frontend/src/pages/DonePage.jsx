@@ -51,7 +51,7 @@ export default function DonePage() {
                 reports.map((r) => (
                     <div key={r.reportId || r._id} className="report-card border-done">
                         <div className="report-header">
-                            <strong>✅ RPT-{String(r.reportId).padStart(3, "0")} — {r.category}{r.customCategory ? ` (${r.customCategory})` : ""}</strong>
+                            <strong>✅ {(() => { const n = Number(r.reportId); return n > 100000 ? `RPT-${String(r.reportId).slice(-4)}` : `RPT-${String(r.reportId).padStart(3, "0")}`; })()} — {r.category}{r.customCategory ? ` (${r.customCategory})` : ""}</strong>
                         </div>
                         <div className="report-date">📅 แจ้งเมื่อ: {new Date(r.createdAt).toLocaleString("th-TH")}</div>
                         {r.location && <div style={{ color: "#4fc3f7", fontSize: "0.85rem" }}>🏠 สถานที่: {r.location}</div>}

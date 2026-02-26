@@ -71,9 +71,10 @@ export default function LoginPage() {
 
                 {error && <div className="error-text">{error}</div>}
 
-                <p className="muted" style={{ marginTop: "1rem", fontSize: "0.8rem" }}>
-                    ยังไม่มีบัญชี? กรุณาติดต่อนิติบุคคลเพื่อขอสิทธิ์เข้าใช้งาน
-                </p>
+                <div style={{ marginTop: "1rem", fontSize: "0.8rem", color: "#888", textAlign: "center", lineHeight: "1.6" }}>
+                    <p style={{ margin: 0 }}>ยังไม่มีบัญชี? กรุณาติดต่อนิติบุคคล</p>
+                    <p style={{ margin: 0, fontSize: "0.75rem" }}>📞 สำนักงานนิติบุคคล หรือ LINE @condocare</p>
+                </div>
             </form>
         </div>
     );
