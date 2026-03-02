@@ -302,12 +302,7 @@ export default function ManagePage() {
                                                         </div>
                                                     )}
 
-                                                    {/* Like / Dislike */}
-                                                    <div style={{ marginTop: "0.5rem", fontSize: "0.85rem" }}>
-                                                        <span className="like-text">👍 พอใจ: {r.likesCount || 0}</span>
-                                                        {" | "}
-                                                        <span className="dislike-text">👎 ไม่พอใจ: {r.dislikesCount || 0}</span>
-                                                    </div>
+
 
                                                     {/* Comments */}
                                                     {r.comments && r.comments.length > 0 && (
