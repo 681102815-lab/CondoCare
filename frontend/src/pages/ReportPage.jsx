@@ -323,12 +323,8 @@ export default function ReportPage() {
 
                                 {/* Actions (compact) */}
                                 <div className="rp-card-actions">
-                                    {r.status === "เสร็จสิ้น" && (
-                                        <button className="btn-comment" onClick={() => setCommentModal({ open: true, reportId: r.reportId })}>⭐ เขียนความเห็น</button>
-                                    )}
-                                    {r.status !== "กำลังดำเนินการ" && (
-                                        <button className="btn-ghost-sm danger" onClick={() => handleDelete(r.reportId, r.status)}>🗑️</button>
-                                    )}
+                                    <button className="btn-comment" onClick={() => setCommentModal({ open: true, reportId: r.reportId })}>💬 เขียนความเห็น</button>
+                                    <button className="btn-ghost-sm danger" onClick={() => handleDelete(r.reportId, r.status)}>🗑️</button>
                                 </div>
                             </div>
                         );
