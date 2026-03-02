@@ -299,26 +299,31 @@ export default function ReportPage() {
                                     </div>
                                 )}
 
-                                {/* Comments */}
-                                {r.comments && r.comments.length > 0 && (
-                                    <div className="comments-section">
-                                        <strong>💬 ความคิดเห็น ({r.comments.length}):</strong>
-                                        {r.comments.map((c, i) => (
-                                            <div key={c.commentId || i} className="comment-item">
-                                                <span className="comment-author">{c.author}</span>
-                                                <span className="comment-date">{new Date(c.createdAt).toLocaleString("th-TH")}</span>
-                                                <p className="comment-text">{c.text}</p>
-                                            </div>
-                                        ))}
+                                {/* Comments + Like/Dislike */}
+                                <div className="comments-section">
+                                    {r.comments && r.comments.length > 0 && (
+                                        <>
+                                            <strong>💬 ความคิดเห็น ({r.comments.length}):</strong>
+                                            {r.comments.map((c, i) => (
+                                                <div key={c.commentId || i} className="comment-item">
+                                                    <span className="comment-author">{c.author}</span>
+                                                    <span className="comment-date">{new Date(c.createdAt).toLocaleString("th-TH")}</span>
+                                                    <p className="comment-text">{c.text}</p>
+                                                </div>
+                                            ))}
+                                        </>
+                                    )}
+                                    {/* Like/Dislike ใต้ comments */}
+                                    <div className="like-dislike-row">
+                                        <button className="btn-like" onClick={() => handleLike(r.reportId)}>👍 พอใจ {r.likesCount || 0}</button>
+                                        <button className="btn-dislike" onClick={() => handleDislike(r.reportId)}>👎 ไม่พอใจ {r.dislikesCount || 0}</button>
                                     </div>
-                                )}
+                                </div>
 
                                 {/* Actions (compact) */}
                                 <div className="rp-card-actions">
-                                    <button className="btn-like" onClick={() => handleLike(r.reportId)}>👍 {r.likesCount || 0}</button>
-                                    <button className="btn-dislike" onClick={() => handleDislike(r.reportId)}>👎 {r.dislikesCount || 0}</button>
                                     {r.status === "เสร็จสิ้น" && (
-                                        <button className="btn-comment" onClick={() => setCommentModal({ open: true, reportId: r.reportId })}>⭐ ความเห็น</button>
+                                        <button className="btn-comment" onClick={() => setCommentModal({ open: true, reportId: r.reportId })}>⭐ เขียนความเห็น</button>
                                     )}
                                     {r.status !== "กำลังดำเนินการ" && (
                                         <button className="btn-ghost-sm danger" onClick={() => handleDelete(r.reportId, r.status)}>🗑️</button>

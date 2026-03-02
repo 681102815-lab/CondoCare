@@ -96,21 +96,28 @@ export default function DonePage() {
                             </div>
                         )}
 
-                        {/* แสดงความคิดเห็นของตัวเอง */}
-                        {r.comments && r.comments.length > 0 && (
-                            <div className="comments-section">
-                                <strong>💬 ความคิดเห็น ({r.comments.length}):</strong>
-                                {r.comments.map((c, i) => (
-                                    <div key={c.commentId || i} className="comment-item">
-                                        <span className="comment-author">{c.author}</span>
-                                        <span className="comment-date">{new Date(c.createdAt).toLocaleString("th-TH")}</span>
-                                        <p className="comment-text">{c.text}</p>
-                                    </div>
-                                ))}
+                        {/* แสดงความคิดเห็น + Like/Dislike */}
+                        <div className="comments-section">
+                            {r.comments && r.comments.length > 0 && (
+                                <>
+                                    <strong>💬 ความคิดเห็น ({r.comments.length}):</strong>
+                                    {r.comments.map((c, i) => (
+                                        <div key={c.commentId || i} className="comment-item">
+                                            <span className="comment-author">{c.author}</span>
+                                            <span className="comment-date">{new Date(c.createdAt).toLocaleString("th-TH")}</span>
+                                            <p className="comment-text">{c.text}</p>
+                                        </div>
+                                    ))}
+                                </>
+                            )}
+                            {/* Like/Dislike ใต้ comments */}
+                            <div className="like-dislike-row">
+                                <button className="btn-like" onClick={() => handleLike(r.reportId)}>👍 พอใจ {r.likesCount || 0}</button>
+                                <button className="btn-dislike" onClick={() => handleDislike(r.reportId)}>👎 ไม่พอใจ {r.dislikesCount || 0}</button>
                             </div>
-                        )}
+                        </div>
 
-                        {/* ⭐ Rating & Feedback — เด่นชัด */}
+                        {/* ⭐ Rating & Comment */}
                         <div className="rating-feedback-section">
                             <div className="rating-section">
                                 <strong>⭐ ให้คะแนนช่าง:</strong>
@@ -131,18 +138,12 @@ export default function DonePage() {
                                     </span>
                                 </div>
                             </div>
-
                             <button
                                 className="btn-comment-prominent"
                                 onClick={() => setCommentModal({ open: true, reportId: r.reportId })}
                             >
                                 💬 เขียนความเห็น / แจ้งปัญหาเพิ่มเติม
                             </button>
-                        </div>
-
-                        <div className="report-actions">
-                            <button className="btn-like" onClick={() => handleLike(r.reportId)}>👍 พอใจ {r.likesCount || 0}</button>
-                            <button className="btn-dislike" onClick={() => handleDislike(r.reportId)}>👎 ไม่พอใจ {r.dislikesCount || 0}</button>
                         </div>
                     </div>
                 ))

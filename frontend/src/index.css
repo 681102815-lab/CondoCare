@@ -1964,6 +1964,20 @@ select option {
   margin: 0.2rem 0 0;
 }
 
+.like-dislike-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.like-dislike-row .btn-like,
+.like-dislike-row .btn-dislike {
+  font-size: 0.82rem;
+  padding: 4px 14px;
+}
+
 /* ===================== RESPONSIVE ===================== */
 @media (max-width: 768px) {
   .app-grid {
