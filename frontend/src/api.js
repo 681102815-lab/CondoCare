@@ -115,12 +115,12 @@ export async function updateReportRating(reportId, rating) {
     return api(`/reports/${reportId}/rating`, { method: "PUT", body: JSON.stringify({ rating }) });
 }
 
-export async function toggleLike(reportId, username) {
-    return api(`/reports/${reportId}/like`, { method: "POST", body: JSON.stringify({ username }) });
+export async function toggleCommentLike(reportId, commentId, username) {
+    return api(`/reports/${reportId}/comment/${commentId}/like`, { method: "POST", body: JSON.stringify({ username }) });
 }
 
-export async function toggleDislike(reportId, username) {
-    return api(`/reports/${reportId}/dislike`, { method: "POST", body: JSON.stringify({ username }) });
+export async function toggleCommentDislike(reportId, commentId, username) {
+    return api(`/reports/${reportId}/comment/${commentId}/dislike`, { method: "POST", body: JSON.stringify({ username }) });
 }
 
 export async function addComment(reportId, author, text) {

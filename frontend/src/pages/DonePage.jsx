@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { getReports, toggleLike, toggleDislike, addComment, updateReportRating } from "../api";
+import { getReports, toggleCommentLike, toggleCommentDislike, addComment, updateReportRating } from "../api";
 import { useAuth } from "../AuthContext";
 import Modal from "../components/Modal";
 
@@ -18,8 +18,8 @@ export default function DonePage() {
 
     useEffect(() => { reload(); }, [reload]);
 
-    async function handleLike(id) { try { await toggleLike(id, user.username); reload(); } catch (e) { console.error(e); } }
-    async function handleDislike(id) { try { await toggleDislike(id, user.username); reload(); } catch (e) { console.error(e); } }
+    async function handleCommentLike(reportId, commentId) { try { await toggleCommentLike(reportId, commentId, user.username); reload(); } catch (e) { console.error(e); } }
+    async function handleCommentDislike(reportId, commentId) { try { await toggleCommentDislike(reportId, commentId, user.username); reload(); } catch (e) { console.error(e); } }
 
     async function handleRating(reportId, rating) {
         try {
@@ -96,25 +96,26 @@ export default function DonePage() {
                             </div>
                         )}
 
-                        {/* แสดงความคิดเห็น + Like/Dislike */}
+                        {/* แสดงความคิดเห็น + Like/Dislike per comment */}
                         <div className="comments-section">
                             {r.comments && r.comments.length > 0 && (
                                 <>
                                     <strong>💬 ความคิดเห็น ({r.comments.length}):</strong>
                                     {r.comments.map((c, i) => (
                                         <div key={c.commentId || i} className="comment-item">
-                                            <span className="comment-author">{c.author}</span>
-                                            <span className="comment-date">{new Date(c.createdAt).toLocaleString("th-TH")}</span>
+                                            <div className="comment-header">
+                                                <span className="comment-author">{c.author}</span>
+                                                <span className="comment-date">{new Date(c.createdAt).toLocaleString("th-TH")}</span>
+                                            </div>
                                             <p className="comment-text">{c.text}</p>
+                                            <div className="comment-reactions">
+                                                <button className="btn-react" onClick={() => handleCommentLike(r.reportId, c.commentId)}>👍 {c.likesCount || 0}</button>
+                                                <button className="btn-react" onClick={() => handleCommentDislike(r.reportId, c.commentId)}>👎 {c.dislikesCount || 0}</button>
+                                            </div>
                                         </div>
                                     ))}
                                 </>
                             )}
-                            {/* Like/Dislike ใต้ comments */}
-                            <div className="like-dislike-row">
-                                <button className="btn-like" onClick={() => handleLike(r.reportId)}>👍 พอใจ {r.likesCount || 0}</button>
-                                <button className="btn-dislike" onClick={() => handleDislike(r.reportId)}>👎 ไม่พอใจ {r.dislikesCount || 0}</button>
-                            </div>
                         </div>
 
                         {/* ⭐ Rating & Comment */}
