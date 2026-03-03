@@ -55,10 +55,17 @@ export default function ReportPage() {
     useEffect(() => { reload(); }, [reload]);
 
     function handleImageChange(e) {
-        const files = Array.from(e.target.files || []);
-        if (files.length > 5) { alert("แนบได้สูงสุด 5 รูป"); return; }
-        setImages(files);
-        setPreviews(files.map(f => URL.createObjectURL(f)));
+        const newFiles = Array.from(e.target.files || []);
+        setImages(prev => {
+            const combined = [...prev, ...newFiles].slice(0, 5);
+            if (prev.length + newFiles.length > 5) alert("แนบได้สูงสุด 5 รูป (เลือกเกินจะตัดส่วนเกินออก)");
+            setPreviews(old => {
+                const newPreviews = newFiles.map(f => URL.createObjectURL(f));
+                return [...old, ...newPreviews].slice(0, 5);
+            });
+            return combined;
+        });
+        e.target.value = ""; // reset input so same file can be re-selected
     }
 
     function removeImage(idx) {
